@@ -1,28 +1,56 @@
 import { configureStore, createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
+interface User{
+  id: number;
+  name: string;
+  username: string;
+  email: string;
+  phone: string;
+}
+
 interface DataState {
-  data: Array<any>;
+  mainData: Array<User>;
+  data: Array<User>;
   loading: boolean;
 }
 
 const initialState: DataState = {
-  data: [],
-  loading: false,
+    mainData: [],
+    data: [],
+    loading: false,
 };
 
 export const fetchUsers = createAsyncThunk('data/fetchUsers', async () => {
+  try {
     const response = await fetch('https://jsonplaceholder.typicode.com/users');
-
+    if (!response.ok) {
+      throw new Error('Failed to fetch users');
+    }
     return response.json();
+  } catch (error: unknown) {  
+  if (error instanceof Error) {  
+    throw new Error(error.message || 'An error occurred');
+  } else {
+    throw new Error('An unknown error occurred');
+  }
+}
 });
+
 
 
 export const usersData = createSlice({
     name: 'users',
     initialState,
     reducers: {
-        showData(state) {
-            console.log(state.data);
+        filterData(state, action) {
+            state.data = state.mainData.filter(item => 
+                Object.values(item).some(value => {
+                    if (typeof value === 'string' || typeof value === 'number') {
+                        return value.toString().toLowerCase().includes(action.payload.toLowerCase());
+                    }
+                    return false;
+                })
+            )
         }
     },
     extraReducers: (builder) => {
@@ -31,6 +59,7 @@ export const usersData = createSlice({
                 state.loading = true;
             })
             .addCase(fetchUsers.fulfilled, (state, action) => {
+                state.mainData = action.payload;
                 state.data = action.payload;
                 state.loading = false;
             })
@@ -40,12 +69,14 @@ export const usersData = createSlice({
     },
 });
 
+export const { filterData } = usersData.actions;
+
 export const store = configureStore({
   reducer: {
    users: usersData.reducer,
   },
 });
 
-// Типизация стейта и диспетчера
+
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

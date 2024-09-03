@@ -1,5 +1,4 @@
 import { useDispatch, useSelector } from "react-redux";
-import TableRow from "./TableRow";
 import { RootState, AppDispatch } from '../store/store';
 import { useEffect } from "react";
 import { fetchUsers } from "../store/store";
@@ -8,7 +7,7 @@ import { fetchUsers } from "../store/store";
 
 export default function Table() {
     const dispatch: AppDispatch = useDispatch();
-  const { data, loading} = useSelector((state: RootState) => state.users);
+    const { data, loading} = useSelector((state: RootState) => state.users);
     
     useEffect(() => {
         dispatch(fetchUsers());
@@ -30,7 +29,7 @@ export default function Table() {
         </thead>
         <tbody>
             {data.map((item) => (
-                <tr>
+                <tr key = {item.id}>
                     <td>{item.id}</td>
                     <td>{item.name}</td>
                     <td>{item.username}</td>
